@@ -42,7 +42,7 @@ func (a *Alert) Notify() (err error) {
 	return
 }
 
-// Dispatch sends all notification to all registered chanel
+// Dispatch sends all notification to all registered channels
 func (a *Alert) dispatch() (err error) {
 	if shouldMail() {
 		fmt.Println("Send mail....")
