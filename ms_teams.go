@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 )
@@ -71,9 +72,24 @@ func (card *MsTeam) Send() (err error) {
 		return err
 	}
 
+	var client http.Client
 	timeout := time.Duration(5 * time.Second)
-	client := http.Client{
-		Timeout: timeout,
+	proxyURL := os.Getenv("MS_TEAMS_PROXY_URL")
+
+	if proxyURL != "" {
+		proxy, err := url.Parse(proxyURL)
+		if err != nil {
+			return err
+		}
+		transport := &http.Transport{Proxy: http.ProxyURL(proxy)}
+		client = http.Client{
+			Transport: transport,
+			Timeout:   timeout,
+		}
+	} else {
+		client = http.Client{
+			Timeout: timeout,
+		}
 	}
 
 	wb := os.Getenv("MS_TEAMS_WEBHOOK")

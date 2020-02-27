@@ -98,6 +98,10 @@ func (ec *EmailConfig) Send() error {
 	if err != nil {
 		return err
 	}
+	_, err = w.Write([]byte(message))
+	if err != nil {
+		return err
+	}
 	err = w.Close()
 	if err != nil {
 		return err
