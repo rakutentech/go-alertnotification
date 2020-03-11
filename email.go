@@ -57,12 +57,13 @@ func (ec *EmailConfig) Send() error {
 	}
 	r := strings.NewReplacer("\r\n", "", "\r", "", "\n", "", "%0a", "", "%0d", "")
 
-	message := "To: " + strings.Join(ec.Recievers, ", ") +
+	messageDetail := "Error: \r\n" + fmt.Sprintf("%+v", ec.ErrorObj)
+	message := "To: " + strings.Join(ec.Recievers, ", ") + "\r\n" +
 		"From: " + ec.Sender + "\r\n" +
 		"Subject: " + os.Getenv("EMAIL_SUBJECT") + "\r\n" +
 		"Content-Type: text/html; charset=\"UTF-8\"\r\n" +
 		"Content-Transfer-Encoding: base64\r\n" +
-		"\r\n" + base64.StdEncoding.EncodeToString([]byte(string(fmt.Sprintf("%+v", ec.ErrorObj))))
+		"\r\n" + base64.StdEncoding.EncodeToString([]byte(string(messageDetail)))
 
 	if len(strings.TrimSpace(ec.Username)) != 0 {
 		stmpAuth := smtp.PlainAuth("", ec.Username, ec.Password, ec.Host)
