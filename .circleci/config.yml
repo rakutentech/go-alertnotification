@@ -34,6 +34,13 @@ jobs:
           GOPATH: ""
     working_directory: /go/src/github.com/orgs/rakutentech/go-alertnotification
     <<: *build_steps
+  go-1.14: 
+    docker: 
+      - image: circleci/golang:1.14
+        environment:
+          GOPATH: ""
+    working_directory: /go/src/github.com/orgs/rakutentech/go-alertnotification
+    <<: *build_steps
   go-1.15: 
     docker: 
       - image: circleci/golang:1.15
