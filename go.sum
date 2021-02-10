@@ -2,5 +2,7 @@ github.com/GitbookIO/diskache v0.0.0-20161028144708-bfb81bf58cb1 h1:1ui53h0HCYjy
 github.com/GitbookIO/diskache v0.0.0-20161028144708-bfb81bf58cb1/go.mod h1:TTHndD25/UJVOyBl/vOq2g5RIg4bidGlmtzb+4Zr+Nw=
 github.com/GitbookIO/syncgroup v0.0.0-20181003125046-3e73b2e6a972 h1:t9LCqP1L6hvq0uQAzFp20CPpHzlZGLoNFG2bm4I/4F4=
 github.com/GitbookIO/syncgroup v0.0.0-20181003125046-3e73b2e6a972/go.mod h1:2Cn3sd0iZa+NmA9dsv8p/fQMx0TK+jzQUbJSjULomrc=
+github.com/GitbookIO/syncgroup v0.0.0-20200915204659-4f0b2961ab10 h1:G9KsBi5RxXROehPm+TSvTrFXShD613GLKrv9ctY1hFE=
+github.com/GitbookIO/syncgroup v0.0.0-20200915204659-4f0b2961ab10/go.mod h1:QEGLOlzj5q/UbkPM0viAulgbdRUpsU3/6HVA9YUA9BU=
 github.com/joho/godotenv v1.3.0 h1:Zjp+RcGpHhGlrMbJzXTrZZPrWj+1vfm90La1wgB6Bhc=
 github.com/joho/godotenv v1.3.0/go.mod h1:7hK45KPybAkOC6peb+G5yklZfMxEjkZhHbwpqxOKXbg=
