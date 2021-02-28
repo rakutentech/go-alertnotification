@@ -32,7 +32,7 @@ func DoSendNotification(alert AlertNotification) error {
 
 // Notify send and do throttling when error occur
 func (a *Alert) Notify() (err error) {
-	if a.sholdAlert() {
+	if a.shouldAlert() {
 		err := a.dispatch()
 		fmt.Println(err)
 		if err != nil {
@@ -64,7 +64,7 @@ func (a *Alert) dispatch() (err error) {
 	return
 }
 
-func (a *Alert) sholdAlert() bool {
+func (a *Alert) shouldAlert() bool {
 	if !a.isThrottlingEnabled() {
 		//Always alert when throttling is disabled.
 		return true
