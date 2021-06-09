@@ -16,13 +16,13 @@ type EmailConfig struct {
 	Host      string
 	Port      string
 	Sender    string
-	Recievers []string // Can use comma for mutliple email
+	Receivers []string // Can use comma for mutliple email
 	ErrorObj  error
 }
 
 func getReceivers() []string {
 	delimeter := ","
-	receivers := os.Getenv("EMAIL_RECIEVERS")
+	receivers := os.Getenv("EMAIL_RECEIVERS")
 	if len(receivers) == 0 {
 		return nil
 	}
@@ -42,7 +42,7 @@ func NewEmailConfig(err error) EmailConfig {
 		Host:      os.Getenv("SMTP_HOST"),
 		Port:      os.Getenv("SMTP_PORT"),
 		Sender:    os.Getenv("EMAIL_SENDER"),
-		Recievers: getReceivers(),
+		Receivers: getReceivers(),
 		ErrorObj:  err,
 	}
 	return config
@@ -52,13 +52,13 @@ func NewEmailConfig(err error) EmailConfig {
 func (ec *EmailConfig) Send() error {
 	fmt.Println("sending email ....")
 	var err error
-	if ec.Recievers == nil {
+	if ec.Receivers == nil {
 		return errors.New("Notification Receivers is empty")
 	}
 	r := strings.NewReplacer("\r\n", "", "\r", "", "\n", "", "%0a", "", "%0d", "")
 
 	messageDetail := "Error: \r\n" + fmt.Sprintf("%+v", ec.ErrorObj)
-	message := "To: " + strings.Join(ec.Recievers, ", ") + "\r\n" +
+	message := "To: " + strings.Join(ec.Receivers, ", ") + "\r\n" +
 		"From: " + ec.Sender + "\r\n" +
 		"Subject: " + os.Getenv("EMAIL_SUBJECT") + "\r\n" +
 		"Content-Type: text/html; charset=\"UTF-8\"\r\n" +
@@ -72,7 +72,7 @@ func (ec *EmailConfig) Send() error {
 			ec.Host+":"+ec.Port,
 			stmpAuth,
 			ec.Sender,
-			ec.Recievers,
+			ec.Receivers,
 			[]byte(message),
 		)
 		return err
@@ -87,10 +87,10 @@ func (ec *EmailConfig) Send() error {
 	if err = conn.Mail(r.Replace(ec.Sender)); err != nil {
 		return err
 	}
-	// format reciever email
-	for i := range ec.Recievers {
-		ec.Recievers[i] = r.Replace(ec.Recievers[i])
-		if err = conn.Rcpt(ec.Recievers[i]); err != nil {
+	// format receiver email
+	for i := range ec.Receivers {
+		ec.Receivers[i] = r.Replace(ec.Receivers[i])
+		if err = conn.Rcpt(ec.Receivers[i]); err != nil {
 			return err
 		}
 	}

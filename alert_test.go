@@ -115,7 +115,7 @@ func TestAlert_Notify(t *testing.T) {
 	}
 }
 
-func TestAlert_sholdAlert(t *testing.T) {
+func TestAlert_shouldAlert(t *testing.T) {
 	type fields struct {
 		Error            error
 		DoNotAlertErrors []error
@@ -162,8 +162,8 @@ func TestAlert_sholdAlert(t *testing.T) {
 			if err := a.RemoveCurrentThrotting(); err != nil {
 				t.Errorf("Alert.Notify() error = %+v", err)
 			}
-			if got := a.sholdAlert(); got != tt.want {
-				t.Errorf("Alert.sholdAlert() = %v, want %v", got, tt.want)
+			if got := a.shouldAlert(); got != tt.want {
+				t.Errorf("Alert.shouldAlert() = %v, want %v", got, tt.want)
 			}
 		})
 	}
