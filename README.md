@@ -30,7 +30,7 @@ This library supports sending alert as email and as message card to Ms Teams' ch
 |---|---|---|---|
 |1   |EMAIL_ALERT_ENABLED   |false    |change to "true" to enable   |
 |2   |EMAIL_SENDER   |""   | *require sender email address   |
-|3   |EMAIL_RECIEVERS   | ""  | *require receiver email addresses. Multiple address separated by comma. eg. test1@example.com, test2@example.com   |
+|3   |EMAIL_RECEIVERS   | ""  | *require receiver email addresses. Multiple address separated by comma. eg. test1@example.com, test2@example.com   |
 |4   |SMTP_HOST   |""  | SMTP server hostname   |
 |5   |SMTP_PORT   |"" | SMTP server port  |
 |6   |EMAIL_USERNAME   |""   |SMTP username   |
@@ -86,7 +86,7 @@ This library supports sending alert as email and as message card to Ms Teams' ch
 SMTP_HOST=localhost
 SMTP_PORT=25
 EMAIL_SENDER=test@example.com
-EMAIL_RECIEVERS=recevier.test@exmaple.com
+EMAIL_RECEIVERS=receiver.test@exmaple.com
 EMAIL_ALERT_ENABLED=true
 MS_TEAMS_ALERT_ENABLED=
 
