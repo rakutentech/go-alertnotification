@@ -4,15 +4,22 @@ jobs:
   test:
     strategy:
       matrix:
-        go-version: [1.13, 1.14, 1.15, 1.16.7, 1.17.4]
+        go-version: [1.16.7, 1.17.4]
         os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
+    env:
+      GO111MODULE: on
     steps:
       - uses: actions/checkout@v2
       - name: Setup go
         uses: actions/setup-go@v2
         with:
           go-version: ${{ matrix.go }}
-
       - name: Test
         run: go test -v ./...
+      - name: Vet
+        run: go vet -v ./...
+      - name: Run Gosec Security Scanner
+        uses: securego/gosec@master
+        with:
+          args: ./...

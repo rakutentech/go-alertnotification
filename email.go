@@ -26,12 +26,7 @@ func getReceivers() []string {
 	if len(receivers) == 0 {
 		return nil
 	}
-	receivers = strings.TrimSpace(receivers)
-	if strings.HasSuffix(receivers, delimeter) {
-		receivers = strings.TrimSuffix(receivers, delimeter)
-	}
 	return strings.Split(receivers, delimeter)
-
 }
 
 // NewEmailConfig create new EmailConfig struct
@@ -53,7 +48,7 @@ func (ec *EmailConfig) Send() error {
 	fmt.Println("sending email ....")
 	var err error
 	if ec.Receivers == nil {
-		return errors.New("Notification Receivers is empty")
+		return errors.New("notification receivers are empty")
 	}
 	r := strings.NewReplacer("\r\n", "", "\r", "", "\n", "", "%0a", "", "%0d", "")
 
