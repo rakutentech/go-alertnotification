@@ -2,8 +2,6 @@
 
 This library supports sending alert as email and as message card to Ms Teams' channel. It is built with `go version go1.12.9`
 
-[![CircleCI](https://circleci.com/gh/rakutentech/go-alertnotification/tree/master.svg?style=svg)](https://circleci.com/gh/rakutentech/go-alertnotification/tree/master)
-
 ## Installing
 
 ### *go get

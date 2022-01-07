@@ -47,7 +47,7 @@ func NewMsTeam(err error) MsTeam {
 		Sections: []SectionStruct{
 			SectionStruct{
 				ActivityTitle:    os.Getenv("MS_TEAMS_CARD_SUBJECT"),
-				ActivitySubtitle: fmt.Sprintf("Error has occured on %v", os.Getenv("APP_NAME")),
+				ActivitySubtitle: fmt.Sprintf("error has occured on %v", os.Getenv("APP_NAME")),
 				ActivityImage:    "",
 				Facts: []FactStruct{
 					FactStruct{
@@ -94,7 +94,7 @@ func (card *MsTeam) Send() (err error) {
 
 	wb := os.Getenv("MS_TEAMS_WEBHOOK")
 	if len(wb) == 0 {
-		return errors.New("Cannot sent alert to MsTeams.MS_TEAMS_WEBHOOK is not set in the environment. ")
+		return errors.New("cannot send alert to MSTeams.MS_TEAMS_WEBHOOK is not set in the environment. ")
 	}
 	request, err := http.NewRequest("POST", wb, bytes.NewBuffer(requestBody))
 	request.Header.Set("Content-type", "application/json")
@@ -114,7 +114,7 @@ func (card *MsTeam) Send() (err error) {
 		return err
 	}
 	if string(respBody) != "1" {
-		return errors.New("Cannot push to MsTeams")
+		return errors.New("cannot push to MSTeams")
 	}
 	return
 }

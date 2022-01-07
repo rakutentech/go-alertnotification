@@ -4,9 +4,11 @@ jobs:
   test:
     strategy:
       matrix:
-        go-version: [1.13, 1.14, 1.15, 1.16.7, 1.17.4]
+        go-version: [1.16.7, 1.17.4]
         os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
+    env:
+      GO111MODULE: on
     steps:
       - uses: actions/checkout@v2
       - name: Setup go
@@ -14,5 +16,15 @@ jobs:
         with:
           go-version: ${{ matrix.go }}
 
+      - name: Install Tools
+        run: |
+          go get -u honnef.co/go/tools/cmd/staticcheck@latest
+          go get -u github.com/securego/gosec/v2/cmd/gosec@latest
       - name: Test
         run: go test -v ./...
+      - name: Static Check
+        run: staticcheck ./...
+      - name: Vet
+        run: go vet -v ./...
+      - name: Secure
+        run: gosec ./...
