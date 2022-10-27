@@ -9,7 +9,7 @@ import (
 type Alert struct {
 	Error            error
 	DoNotAlertErrors []error
-	Expandos         map[string]string
+	Expandos         *Expandos
 }
 
 // NewAlert creates Alert struct instance
@@ -23,13 +23,19 @@ func NewAlert(err error, doNotAlertErrors []error) Alert {
 }
 
 // NewAlertWithExpandos creates Alert struct instance with expandos
-func NewAlertWithExpandos(err error, doNotAlertErrors []error, expandos map[string]string) Alert {
+func NewAlertWithExpandos(err error, doNotAlertErrors []error, expandos *Expandos) Alert {
 	a := Alert{
 		Error:            err,
 		DoNotAlertErrors: doNotAlertErrors,
 		Expandos:         expandos,
 	}
 	return a
+}
+
+// Expandos struct for body and subject
+type Expandos struct {
+	Body    string
+	Subject string
 }
 
 // AlertNotification is interface that all send notification function satify including send email

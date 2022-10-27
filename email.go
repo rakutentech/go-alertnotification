@@ -18,7 +18,7 @@ type EmailConfig struct {
 	Sender    string
 	Receivers []string // Can use comma for multiple email
 	ErrorObj  error
-	Expandos  map[string]string // can modify mail subject and content on demand
+	Expandos  *Expandos // can modify mail subject and content on demand
 }
 
 func getReceivers() []string {
@@ -31,7 +31,7 @@ func getReceivers() []string {
 }
 
 // NewEmailConfig create new EmailConfig struct
-func NewEmailConfig(err error, expandos map[string]string) EmailConfig {
+func NewEmailConfig(err error, expandos *Expandos) EmailConfig {
 	config := EmailConfig{
 		Username:  os.Getenv("EMAIL_USERNAME"),
 		Password:  os.Getenv("EMAIL_PASSWORD"),
@@ -59,11 +59,11 @@ func (ec *EmailConfig) Send() error {
 
 	// update body and subject dynamically
 	if ec.Expandos != nil {
-		if v, ok := ec.Expandos["body"]; ok {
-			messageDetail = v
+		if ec.Expandos.Body != "" {
+			messageDetail = ec.Expandos.Body
 		}
-		if v, ok := ec.Expandos["subject"]; ok {
-			subject = v
+		if ec.Expandos.Subject != "" {
+			subject = ec.Expandos.Subject
 		}
 	}
 

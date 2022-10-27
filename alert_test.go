@@ -69,13 +69,14 @@ func Test_shouldMail(t *testing.T) {
 }
 
 func TestAlert_Notify(t *testing.T) {
-	expandos := make(map[string]string)
-	expandos["body"] = "This is mail body"
-	expandos["subject"] = "This is mail subject"
+	expandos := &Expandos{
+		Body:    "This is mail body",
+		Subject: "This is mail subject",
+	}
 	type fields struct {
 		Error            error
 		DoNotAlertErrors []error
-		Expandos         map[string]string
+		Expandos         *Expandos
 	}
 	tests := []struct {
 		name    string
@@ -87,7 +88,6 @@ func TestAlert_Notify(t *testing.T) {
 				Error: errors.New("Do not alert"), // Do not alert => no error will occur
 				DoNotAlertErrors: []error{
 					errors.New("Do not alert"), errors.New("if this error then alert")},
-				Expandos: nil,
 			},
 			wantErr: false,
 		},
@@ -96,7 +96,6 @@ func TestAlert_Notify(t *testing.T) {
 				Error: errors.New("give an alert"), // error occured and try to send email => no mail setting configure => error.
 				DoNotAlertErrors: []error{
 					errors.New("Do not alert"), errors.New("if this error then alert")},
-				Expandos: nil,
 			},
 			wantErr: true,
 		},
