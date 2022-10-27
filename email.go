@@ -16,8 +16,9 @@ type EmailConfig struct {
 	Host      string
 	Port      string
 	Sender    string
-	Receivers []string // Can use comma for mutliple email
+	Receivers []string // Can use comma for multiple email
 	ErrorObj  error
+	Expandos  map[string]string // can modify mail subject and content on demand
 }
 
 func getReceivers() []string {
@@ -30,7 +31,7 @@ func getReceivers() []string {
 }
 
 // NewEmailConfig create new EmailConfig struct
-func NewEmailConfig(err error) EmailConfig {
+func NewEmailConfig(err error, expandos map[string]string) EmailConfig {
 	config := EmailConfig{
 		Username:  os.Getenv("EMAIL_USERNAME"),
 		Password:  os.Getenv("EMAIL_PASSWORD"),
@@ -39,6 +40,7 @@ func NewEmailConfig(err error) EmailConfig {
 		Sender:    os.Getenv("EMAIL_SENDER"),
 		Receivers: getReceivers(),
 		ErrorObj:  err,
+		Expandos:  expandos,
 	}
 	return config
 }
@@ -53,9 +55,21 @@ func (ec *EmailConfig) Send() error {
 	r := strings.NewReplacer("\r\n", "", "\r", "", "\n", "", "%0a", "", "%0d", "")
 
 	messageDetail := "Error: \r\n" + fmt.Sprintf("%+v", ec.ErrorObj)
+	subject := os.Getenv("EMAIL_SUBJECT")
+
+	// update body and subject dynamically
+	if ec.Expandos != nil {
+		if v, ok := ec.Expandos["body"]; ok {
+			messageDetail = v
+		}
+		if v, ok := ec.Expandos["subject"]; ok {
+			subject = v
+		}
+	}
+
 	message := "To: " + strings.Join(ec.Receivers, ", ") + "\r\n" +
 		"From: " + ec.Sender + "\r\n" +
-		"Subject: " + os.Getenv("EMAIL_SUBJECT") + "\r\n" +
+		"Subject: " + subject + "\r\n" +
 		"Content-Type: text/html; charset=\"UTF-8\"\r\n" +
 		"Content-Transfer-Encoding: base64\r\n" +
 		"\r\n" + base64.StdEncoding.EncodeToString([]byte(string(messageDetail)))

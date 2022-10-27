@@ -69,9 +69,13 @@ func Test_shouldMail(t *testing.T) {
 }
 
 func TestAlert_Notify(t *testing.T) {
+	expandos := make(map[string]string)
+	expandos["body"] = "This is mail body"
+	expandos["subject"] = "This is mail subject"
 	type fields struct {
 		Error            error
 		DoNotAlertErrors []error
+		Expandos         map[string]string
 	}
 	tests := []struct {
 		name    string
@@ -83,6 +87,7 @@ func TestAlert_Notify(t *testing.T) {
 				Error: errors.New("Do not alert"), // Do not alert => no error will occur
 				DoNotAlertErrors: []error{
 					errors.New("Do not alert"), errors.New("if this error then alert")},
+				Expandos: nil,
 			},
 			wantErr: false,
 		},
@@ -91,6 +96,16 @@ func TestAlert_Notify(t *testing.T) {
 				Error: errors.New("give an alert"), // error occured and try to send email => no mail setting configure => error.
 				DoNotAlertErrors: []error{
 					errors.New("Do not alert"), errors.New("if this error then alert")},
+				Expandos: nil,
+			},
+			wantErr: true,
+		},
+		{name: "Expandos",
+			fields: fields{
+				Error: errors.New("give an alert"), // error occured and try to send email => no mail setting configure => error.
+				DoNotAlertErrors: []error{
+					errors.New("Do not alert"), errors.New("if this error then alert")},
+				Expandos: expandos,
 			},
 			wantErr: true,
 		},
@@ -104,6 +119,7 @@ func TestAlert_Notify(t *testing.T) {
 			a := &Alert{
 				Error:            tt.fields.Error,
 				DoNotAlertErrors: tt.fields.DoNotAlertErrors,
+				Expandos:         tt.fields.Expandos,
 			}
 			if err := a.RemoveCurrentThrotting(); err != nil {
 				t.Errorf("Alert.Notify() error = %+v", err)
