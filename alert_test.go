@@ -70,8 +70,11 @@ func Test_shouldMail(t *testing.T) {
 
 func TestAlert_Notify(t *testing.T) {
 	expandos := &Expandos{
-		Body:    "This is mail body",
-		Subject: "This is mail subject",
+		EmailBody:               "TEST: This is mail body",
+		EmailSubject:            "TEST: This is mail subject",
+		MsTeamsAlertCardSubject: "TEST: This is MS Teams card title",
+		MsTeamsCardSubject:      "TEST: This is MS Teams card summary",
+		MsTeamsError:            "TEST: This is MS Teams card error message",
 	}
 	type fields struct {
 		Error            error

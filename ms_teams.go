@@ -37,16 +37,32 @@ type FactStruct struct {
 }
 
 // NewMsTeam is used to create MsTeam
-func NewMsTeam(err error) MsTeam {
+func NewMsTeam(err error, expandos *Expandos) MsTeam {
+	title := os.Getenv("ALERT_CARD_SUBJECT")
+	summary := os.Getenv("MS_TEAMS_CARD_SUBJECT")
+	errMsg := fmt.Sprintf("%+v", err)
+	// apply expandos on card
+	if expandos != nil {
+		if expandos.MsTeamsAlertCardSubject != "" {
+			title = expandos.MsTeamsAlertCardSubject
+		}
+		if expandos.MsTeamsCardSubject != "" {
+			summary = expandos.MsTeamsCardSubject
+		}
+		if expandos.MsTeamsError != "" {
+			errMsg = expandos.MsTeamsError
+		}
+	}
+
 	notificationCard := MsTeam{
 		Type:       "MessageCard",
 		Context:    "http://schema.org/extensions",
-		Summary:    os.Getenv("MS_TEAMS_CARD_SUBJECT"),
+		Summary:    summary,
 		ThemeColor: os.Getenv("ALERT_THEME_COLOR"),
-		Title:      os.Getenv("ALERT_CARD_SUBJECT"),
+		Title:      title,
 		Sections: []SectionStruct{
 			SectionStruct{
-				ActivityTitle:    os.Getenv("MS_TEAMS_CARD_SUBJECT"),
+				ActivityTitle:    summary,
 				ActivitySubtitle: fmt.Sprintf("error has occured on %v", os.Getenv("APP_NAME")),
 				ActivityImage:    "",
 				Facts: []FactStruct{
@@ -56,7 +72,7 @@ func NewMsTeam(err error) MsTeam {
 					},
 					FactStruct{
 						Name:  "ERROR",
-						Value: fmt.Sprintf("%+v", err),
+						Value: errMsg,
 					},
 				},
 			},

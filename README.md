@@ -59,15 +59,41 @@ This library supports sending alert as email and as message card to Ms Teams' ch
 
 ## Usage
 
+### Without customized fields (will load subject or body of mail and teams from configuration)
 ```golang
  //import
  import n "github.com/rakutentech/go-alertnotification"
 
  //Create New Alert
- alert := n.NewAlert(err, ignoringErr);
+ alert := n.NewAlert(err, ignoringErr)
 
  //Send notification
- alert.Notify();
+ alert.Notify()
+
+ // To remove all current throttling
+ alert.RemoveCurrentThrotting()
+
+```
+
+### With customized fields
+```golang
+ //import
+ import n "github.com/rakutentech/go-alertnotification"
+
+ //Create expandos, can keep the field value as configured by removing that field from expandos
+ expandos := &n.Expandos{
+        EmailBody:                  "This is the customized email body",
+        EmailSubject:               "This is the customized email subject",
+        MsTeamsCardSubject:         "This is the customized MS Teams card summary",
+        MsTeamsAlertCardSubject:    "This is the customized MS Teams card title",
+        MsTeamsError:               "This is the customized MS Teams card error message",
+ }
+
+ //Create New Alert
+ alert := n.NewAlertWithExpandos(err, ignoringErr, expandos)
+
+ //Send notification
+ alert.Notify()
 
  // To remove all current throttling
  alert.RemoveCurrentThrotting()
