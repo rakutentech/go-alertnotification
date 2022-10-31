@@ -34,8 +34,11 @@ func NewAlertWithExpandos(err error, doNotAlertErrors []error, expandos *Expando
 
 // Expandos struct for body and subject
 type Expandos struct {
-	Body    string
-	Subject string
+	EmailBody               string
+	EmailSubject            string
+	MsTeamsAlertCardSubject string
+	MsTeamsCardSubject      string
+	MsTeamsError            string
 }
 
 // AlertNotification is interface that all send notification function satify including send email
@@ -73,7 +76,7 @@ func (a *Alert) dispatch() (err error) {
 
 	if shouldMsTeams() {
 		fmt.Println("SendTeams")
-		m := NewMsTeam(a.Error)
+		m := NewMsTeam(a.Error, a.Expandos)
 		err := m.Send()
 		if err != nil {
 			return err

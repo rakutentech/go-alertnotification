@@ -59,11 +59,11 @@ func (ec *EmailConfig) Send() error {
 
 	// update body and subject dynamically
 	if ec.Expandos != nil {
-		if ec.Expandos.Body != "" {
-			messageDetail = ec.Expandos.Body
+		if ec.Expandos.EmailBody != "" {
+			messageDetail = ec.Expandos.EmailBody
 		}
-		if ec.Expandos.Subject != "" {
-			subject = ec.Expandos.Subject
+		if ec.Expandos.EmailSubject != "" {
+			subject = ec.Expandos.EmailSubject
 		}
 	}
 
