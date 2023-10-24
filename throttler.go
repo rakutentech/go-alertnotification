@@ -53,7 +53,6 @@ func (t *Throttler) IsThrottled(ocError error) bool {
 	gracedTime, gracedSeconds := getGracePeriod(dc, ocError)
 
 	if isWithinGracePeriod(string(gracedTime), gracedSeconds) {
-		// already graced and not over throttling duration, do nothing
 		return true
 	}
 
