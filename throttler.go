@@ -49,6 +49,14 @@ func (t *Throttler) IsThrottled(ocError error) bool {
 	if err != nil {
 		return false
 	}
+
+	gracedTime, gracedSeconds := getGracePeriod(dc, ocError)
+
+	if isWithinGracePeriod(string(gracedTime), gracedSeconds) {
+		// already graced and not over throttling duration, do nothing
+		return true
+	}
+
 	cachedTime, throttled := dc.Get(ocError.Error())
 
 	if throttled && !isOverThrottleDuration(string(cachedTime), t.ThrottleDuration) {
@@ -61,6 +69,35 @@ func (t *Throttler) IsThrottled(ocError error) bool {
 		return false
 	}
 	return false
+}
+
+func getGracePeriod(dc *diskache.Diskache, ocError error) ([]byte, int) {
+	graceKeyPrefix := "GRACE-"
+	now := time.Now().Format(time.RFC3339)
+	gracedTime, gracedCached := dc.Get(graceKeyPrefix + ocError.Error())
+	gracedSeconds, err := strconv.Atoi(os.Getenv("THROTTLE_GRACE_SECONDS"))
+	if err != nil {
+		return []byte{}, 0 // no grace period
+	}
+
+	if !gracedCached {
+		gracedTime = []byte(now)
+		err = dc.Set(graceKeyPrefix+ocError.Error(), gracedTime)
+		if err != nil {
+			return []byte{}, 0 // no grace period
+		}
+	}
+	return gracedTime, gracedSeconds
+}
+
+func isWithinGracePeriod(cachedTime string, gracedSeconds int) bool {
+	gracedTime, err := time.Parse(time.RFC3339, string(cachedTime))
+	if err != nil {
+		return false
+	}
+	now := time.Now()
+	diff := int(now.Sub(gracedTime).Seconds())
+	return diff < gracedSeconds
 }
 
 func isOverThrottleDuration(cachedTime string, throttleDuration int) bool {

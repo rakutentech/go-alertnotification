@@ -113,6 +113,96 @@ func TestThrottler_IsThrottled(t *testing.T) {
 		})
 	}
 }
+func TestThrottler_IsThrottledGraced(t *testing.T) {
+	type fields struct {
+		CacheOpt         string
+		ThrottleDuration int
+	}
+	type args struct {
+		ocError error
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   bool
+	}{
+		{
+			name: "default",
+			fields: fields{
+				CacheOpt:         fmt.Sprintf("/tmp/cache/%v_throttler_disk_cache", os.Getenv("APP_NAME")),
+				ThrottleDuration: 5,
+			},
+			args: args{
+				ocError: errors.New("test_throttling"),
+			},
+			want: true,
+		},
+	}
+
+	os.Setenv("THROTTLE_GRACE_SECONDS", "10")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			th := &Throttler{
+				CacheOpt:         tt.fields.CacheOpt,
+				ThrottleDuration: tt.fields.ThrottleDuration,
+			}
+			if got := th.IsThrottled(tt.args.ocError); got != tt.want {
+				t.Errorf("Throttler.IsThrottled() = %v, want %v", got, tt.want)
+			}
+			err := th.CleanThrottlingCache()
+			if err != nil {
+				t.Errorf("Cannot clean after test. %+v", err)
+			}
+
+		})
+	}
+}
+func TestThrottler_IsThrottledOverGraced(t *testing.T) {
+	type fields struct {
+		CacheOpt         string
+		ThrottleDuration int
+	}
+	type args struct {
+		ocError error
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   bool
+	}{
+		{
+			name: "default",
+			fields: fields{
+				CacheOpt:         fmt.Sprintf("/tmp/cache/%v_throttler_disk_cache", os.Getenv("APP_NAME")),
+				ThrottleDuration: 5,
+			},
+			args: args{
+				ocError: errors.New("test_throttling"),
+			},
+			want: false,
+		},
+	}
+
+	os.Setenv("THROTTLE_GRACE_SECONDS", "0")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			th := &Throttler{
+				CacheOpt:         tt.fields.CacheOpt,
+				ThrottleDuration: tt.fields.ThrottleDuration,
+			}
+			if got := th.IsThrottled(tt.args.ocError); got != tt.want {
+				t.Errorf("Throttler.IsThrottled() = %v, want %v", got, tt.want)
+			}
+			err := th.CleanThrottlingCache()
+			if err != nil {
+				t.Errorf("Cannot clean after test. %+v", err)
+			}
+
+		})
+	}
+}
 
 func TestThrottler_ThrottleError(t *testing.T) {
 	type fields struct {

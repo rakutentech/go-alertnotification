@@ -46,12 +46,12 @@ go install github.com/rakutentech/go-alertnotification@latest
 
 ### Throttling Configs
 
-| Env Variable           | default                                      | Explanation                    |
-| :--------------------- | :------------------------------------------- | :----------------------------- |
-| THROTTLE_DURATION      | 7                                            | throttling duration in minutes |
-| THROTTLE_GRACE_SECONDS | 0                                            | throttling grace in seconds    |
-| THROTTLE_DISKCACHE_DIR | `/tmp/cache/{APP_NAME}_throttler_disk_cache` | disk location for throttling   |
-| THROTTLE_ENABLED       | true                                         | Disable all together           |
+| Env Variable           | default                                      | Explanation                      |
+| :--------------------- | :------------------------------------------- | :------------------------------- |
+| THROTTLE_DURATION      | 7                                            | throttling duration in (minutes) |
+| THROTTLE_GRACE_SECONDS | 0                                            | throttling grace in (seconds)    |
+| THROTTLE_DISKCACHE_DIR | `/tmp/cache/{APP_NAME}_throttler_disk_cache` | disk location for throttling     |
+| THROTTLE_ENABLED       | true                                         | Disable all together             |
 
 ## Usage
 
