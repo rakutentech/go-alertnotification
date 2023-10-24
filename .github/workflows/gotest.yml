@@ -4,7 +4,7 @@ jobs:
   test:
     strategy:
       matrix:
-        go-version: [mode, dev-latest]
+        go-version: [mod, dev-latest]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     env:
