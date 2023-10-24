@@ -29,8 +29,8 @@ You need to set env variables to configure the alert notification behaviour.
 
 | Env Variable | default | Description                  |
 | :----------- | :------ | :--------------------------- |
-| APP_ENV      |         | appears in email/teams title |
-| APP_NAME     |         | appears in email/teams body  |
+| APP_ENV      |         | Appears in email/teams title |
+| APP_NAME     |         | Appears in email/teams body  |
 
 
 ### Email Configs
@@ -60,9 +60,9 @@ You need to set env variables to configure the alert notification behaviour.
 
 | Env Variable           | default                         | Explanation                      |
 | :--------------------- | :------------------------------ | :------------------------------- |
-| THROTTLE_DURATION      | 7                               | throttling duration in (minutes) |
-| THROTTLE_GRACE_SECONDS | 0                               | throttling grace in (seconds)    |
-| THROTTLE_DISKCACHE_DIR | `/tmp/cache/{APP_NAME}_thro...` | disk location for throttling     |
+| THROTTLE_DURATION      | 7                               | Throttling duration in (minutes) |
+| THROTTLE_GRACE_SECONDS | 0                               | Throttling grace in (seconds)    |
+| THROTTLE_DISKCACHE_DIR | `/tmp/cache/{APP_NAME}_thro...` | Disk location for cache          |
 | THROTTLE_ENABLED       | true                            | Disable all together             |
 
 ## Usage
