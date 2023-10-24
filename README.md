@@ -1,6 +1,18 @@
-# go-alertnotification
+<p align="center">
+  <a href="https://github.com/rakutentech/go-alertnotification">
+    <img alt="go-alertnotification" src="logo.png" width="360">
+  </a>
+</p>
 
-This library supports sending throttled alerts as email and as message card to Ms Teams channel.
+<h3 align="center">Send Alert Notifications for Go Errors.<br>Notify when new error arrives.</h3>
+
+<p align="center">
+  Throttle notifications to avoid overwhelming your inbox.
+  <br>
+  Grace period to notify if the same error occurs.
+  <br>
+  Supports multiple Emails, MS Teams and proxy support.
+</p>
 
 ## Usage
 
@@ -10,48 +22,48 @@ go install github.com/rakutentech/go-alertnotification@latest
 
 ## Configurations
 
-* This package use golang env variables as settings.
+You need to set env variables to configure the alert notification behaviour.
 
 ### General Configs
 
 
-| Env Variable | default | Description                                                   |
-| :----------- | :------ | :------------------------------------------------------------ |
-| APP_ENV      |         | application environment to be appeared in email/teams message |
-| APP_NAME     |         | application name to be appeared in email/teams message        |
+| Env Variable | default | Description                  |
+| :----------- | :------ | :--------------------------- |
+| APP_ENV      |         | appears in email/teams title |
+| APP_NAME     |         | appears in email/teams body  |
 
 
 ### Email Configs
 
-| Env Variable        | default | Description                                                                     |
-| :------------------ | :------ | :------------------------------------------------------------------------------ |
-| **EMAIL_SENDER**    |         | **required** sender email address                                               |
-| **EMAIL_RECEIVERS** |         | **required** receiver email addresses. Eg. `test1@gmail.com`,`test2@gmail.com`  |
-| EMAIL_ALERT_ENABLED | false   | change to "true" to enable                                                      |
-| SMTP_HOST           |         | SMTP server hostname                                                            |
-| SMTP_PORT           |         | SMTP server port                                                                |
-| EMAIL_USERNAME      |         | SMTP username                                                                   |
-| EMAIL_PASSWORD      |         | SMTP password                                                                   |
+| Env Variable        | default | Description                                                              |
+| :------------------ | :------ | :----------------------------------------------------------------------- |
+| **EMAIL_SENDER**    |         | **Required** one mail address                                            |
+| **EMAIL_RECEIVERS** |         | **Required** multiple addresses. Eg. `test1@gmail.com`,`test2@gmail.com` |
+| EMAIL_ALERT_ENABLED | false   |                                                                          |
+| SMTP_HOST           |         |                                                                          |
+| SMTP_PORT           |         |                                                                          |
+| EMAIL_USERNAME      |         |                                                                          |
+| EMAIL_PASSWORD      |         |                                                                          |
 
 ### Ms Teams Configs
 
-| Env Variable           | default | Description                    |
-| :--------------------- | :------ | :----------------------------- |
-| **MS_TEAMS_WEBHOOK**   |         | **required** Ms Teams webhook. |
-| MS_TEAMS_ALERT_ENABLED | false   | change to "true" to enable     |
-| MS_TEAMS_CARD_SUBJECT  |         | MS teams card subject          |
-| ALERT_CARD_SUBJECT     |         | Alert MessageCard subject      |
-| ALERT_THEME_COLOR      |         | Themes color                   |
-| MS_TEAMS_PROXY_URL     |         | Work behind corporate proxy    |
+| Env Variable           | default | Description        |
+| :--------------------- | :------ | :----------------- |
+| **MS_TEAMS_WEBHOOK**   |         | **Required**       |
+| MS_TEAMS_ALERT_ENABLED | false   |                    |
+| MS_TEAMS_CARD_SUBJECT  |         |                    |
+| ALERT_CARD_SUBJECT     |         |                    |
+| ALERT_THEME_COLOR      |         |                    |
+| MS_TEAMS_PROXY_URL     |         | HTTP proxy, if any |
 
 ### Throttling Configs
 
-| Env Variable           | default                                      | Explanation                      |
-| :--------------------- | :------------------------------------------- | :------------------------------- |
-| THROTTLE_DURATION      | 7                                            | throttling duration in (minutes) |
-| THROTTLE_GRACE_SECONDS | 0                                            | throttling grace in (seconds)    |
-| THROTTLE_DISKCACHE_DIR | `/tmp/cache/{APP_NAME}_throttler_disk_cache` | disk location for throttling     |
-| THROTTLE_ENABLED       | true                                         | Disable all together             |
+| Env Variable           | default                         | Explanation                      |
+| :--------------------- | :------------------------------ | :------------------------------- |
+| THROTTLE_DURATION      | 7                               | throttling duration in (minutes) |
+| THROTTLE_GRACE_SECONDS | 0                               | throttling grace in (seconds)    |
+| THROTTLE_DISKCACHE_DIR | `/tmp/cache/{APP_NAME}_thro...` | disk location for throttling     |
+| THROTTLE_ENABLED       | true                            | Disable all together             |
 
 ## Usage
 
