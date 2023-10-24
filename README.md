@@ -25,9 +25,9 @@ go install github.com/rakutentech/go-alertnotification@latest
 
 | Env Variable        | default | Description                                                                     |
 | :------------------ | :------ | :------------------------------------------------------------------------------ |
-| EMAIL_ALERT_ENABLED | false   | change to "true" to enable                                                      |
 | **EMAIL_SENDER**    |         | **required** sender email address                                               |
-| **EMAIL_RECEIVERS** |         | **required** receiver email addresses. Eg. `test1@gmail.com`, `test2@gmail.com` |
+| **EMAIL_RECEIVERS** |         | **required** receiver email addresses. Eg. `test1@gmail.com`,`test2@gmail.com`  |
+| EMAIL_ALERT_ENABLED | false   | change to "true" to enable                                                      |
 | SMTP_HOST           |         | SMTP server hostname                                                            |
 | SMTP_PORT           |         | SMTP server port                                                                |
 | EMAIL_USERNAME      |         | SMTP username                                                                   |
