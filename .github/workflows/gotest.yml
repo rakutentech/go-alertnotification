@@ -4,15 +4,14 @@ jobs:
   test:
     strategy:
       matrix:
-        go-version: [1.16.7, 1.17.4]
+        go-version: [mode, dev-latest]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     env:
       GO111MODULE: on
     steps:
       - uses: actions/checkout@v2
-      - name: Setup go
-        uses: actions/setup-go@v2
+      - uses: kevincobain2000/action-gobrew@v2
         with:
           go-version: ${{ matrix.go }}
       - name: Test
