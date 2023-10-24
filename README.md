@@ -1,11 +1,11 @@
-# golang-alertnotification
+# go-alertnotification
 
 This library supports sending throttled alerts as email and as message card to Ms Teams channel.
 
 ## Usage
 
 ```bash
-    go install github.com/rakutentech/go-alertnotification@latest
+go install github.com/rakutentech/go-alertnotification@latest
 ```
 
 ## Configurations
@@ -46,15 +46,12 @@ This library supports sending throttled alerts as email and as message card to M
 
 ### Throttling Configs
 
-| No  | Environment Variable   | default                                    | Explanation                   |
-| :-- | :--------------------- | :----------------------------------------- | :---------------------------- |
-| 1   | THROTTLE_DURATION      | 7                                          | throttling duration in minute |
-| 2   | THROTTLE_DISKCACHE_DIR | /tmp/cache/{APP_NAME}_throttler_disk_cache | disk location for throttling  |
-| 3   | THROTTLE_ENABLED       | "true"                                     | Disable all together          |
-
-* Reference for using message card :
-<https://docs.microsoft.com/en-us/microsoftteams/platform/concepts/cards/cards-reference>
-<https://www.lee-ford.co.uk/send-message-cards-with-microsoft-teams/>
+| No  | Environment Variable   | default                                    | Explanation                    |
+| :-- | :--------------------- | :----------------------------------------- | :----------------------------- |
+| 1   | THROTTLE_DURATION      | 7                                          | throttling duration in minutes |
+| 2   | THROTTLE_GRACE_SECONDS | 0                                          | throttling grace in seconds    |
+| 3   | THROTTLE_DISKCACHE_DIR | /tmp/cache/{APP_NAME}_throttler_disk_cache | disk location for throttling   |
+| 4   | THROTTLE_ENABLED       | "true"                                     | Disable all together           |
 
 ## Usage
 
