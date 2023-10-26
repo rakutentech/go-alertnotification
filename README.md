@@ -1,6 +1,16 @@
-# go-alertnotification
+<p align="center">
+  <a href="https://github.com/rakutentech/go-alertnotification">
+    <img alt="go-alertnotification" src="logo.png" width="360">
+  </a>
+</p>
 
-This library supports sending throttled alerts as email and as message card to Ms Teams channel.
+<h3 align="center">Send Alert Notifications for Go Errors.<br>Notify when new error arrives.</h3>
+
+<p align="center">
+  Throttle notifications to avoid overwhelming your inbox.
+  <br>
+  Supports multiple Emails, MS Teams and proxy support.
+</p>
 
 ## Usage
 
@@ -10,7 +20,7 @@ go install github.com/rakutentech/go-alertnotification@latest
 
 ## Configurations
 
-* This package use golang env variables as settings.
+This package use golang env variables as settings.
 
 ### General Configs
 
