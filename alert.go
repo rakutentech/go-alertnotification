@@ -95,7 +95,7 @@ func (a *Alert) shouldAlert() bool {
 		return false
 	}
 	t := NewThrottler()
-	return !t.IsThrottled(a.Error)
+	return !t.IsThrottledOrGraced(a.Error)
 }
 
 func (a *Alert) isDoNotAlert() bool {

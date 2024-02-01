@@ -13,6 +13,7 @@ import (
 type Throttler struct {
 	CacheOpt         string
 	ThrottleDuration int
+	GraceDuration    int
 }
 
 // ErrorOccurrence store error time and error
@@ -27,6 +28,7 @@ func NewThrottler() Throttler {
 	t := Throttler{
 		CacheOpt:         fmt.Sprintf("/tmp/cache/%v_throttler_disk_cache", os.Getenv("APP_NAME")),
 		ThrottleDuration: 5, // default 5mn
+		GraceDuration:    0, // default 0sc
 	}
 	if len(os.Getenv("THROTTLE_DURATION")) != 0 {
 		duration, err := strconv.Atoi(os.Getenv("THROTTLE_DURATION"))
@@ -34,6 +36,13 @@ func NewThrottler() Throttler {
 			return t
 		}
 		t.ThrottleDuration = duration
+	}
+	if len(os.Getenv("GRACE_DURATION")) != 0 {
+		grace, err := strconv.Atoi(os.Getenv("GRACE_DURATION"))
+		if err != nil {
+			return t
+		}
+		t.GraceDuration = grace
 	}
 
 	if len(os.Getenv("THROTTLE_DISKCACHE_DIR")) != 0 {
@@ -44,13 +53,24 @@ func NewThrottler() Throttler {
 }
 
 // IsThrottled checks if the error has been throttled. If not, throttle it
-func (t *Throttler) IsThrottled(ocError error) bool {
+func (t *Throttler) IsThrottledOrGraced(ocError error) bool {
 	dc, err := t.getDiskCache()
 	if err != nil {
 		return false
 	}
-	cachedTime, throttled := dc.Get(ocError.Error())
 
+	cachedDetectionTime, hasCachedDetectionTime := dc.Get(fmt.Sprintf("%v_detectionTime", ocError.Error()))
+	if !hasCachedDetectionTime {
+		now := time.Now().Format(time.RFC3339)
+		cachedDetectionTime = []byte(now)
+		dc.Set(fmt.Sprintf("%v_detectionTime", ocError.Error()), cachedDetectionTime)
+	}
+	if !isOverGraceDuration(string(cachedDetectionTime), t.GraceDuration) {
+		// grace duration is not over yet, do nothing
+		return true
+	}
+
+	cachedTime, throttled := dc.Get(ocError.Error())
 	if throttled && !isOverThrottleDuration(string(cachedTime), t.ThrottleDuration) {
 		// already throttled and not over throttling duration, do nothing
 		return true
@@ -61,6 +81,16 @@ func (t *Throttler) IsThrottled(ocError error) bool {
 		return false
 	}
 	return false
+}
+
+func isOverGraceDuration(cachedTime string, graceDuration int) bool {
+	detectionTime, err := time.Parse(time.RFC3339, string(cachedTime))
+	if err != nil {
+		return false
+	}
+	now := time.Now()
+	diff := int(now.Sub(detectionTime).Seconds())
+	return diff >= graceDuration
 }
 
 func isOverThrottleDuration(cachedTime string, throttleDuration int) bool {
