@@ -49,6 +49,8 @@ func TestNewThrottler(t *testing.T) {
 			os.Setenv("THROTTLE_DURATION", "8")
 			os.Setenv("GRACE_DURATION", "0")
 			os.Setenv("THROTTLE_DISKCACHE_DIR", "new_cache_dir")
+		} else if tt.name == "default" {
+			os.Setenv("GRACE_DURATION", "")
 		}
 		t.Run(tt.name, func(t *testing.T) {
 			got := NewThrottler()
