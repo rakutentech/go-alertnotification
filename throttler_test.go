@@ -304,18 +304,18 @@ func Test_isOverGraceDuration(t *testing.T) {
 		{
 			name: "Test_isOverGraceDuration_true",
 			args: args{
-				cachedTime:       time.Now().Add(-3 * time.Minute).Format(time.RFC3339), // -3 minutes => pass 2 minutes durations
+				cachedTime:       time.Now().Add(-5 * time.Second).Format(time.RFC3339), // 2 sec after grace duration is over
 				throttleDuration: 0,
-				graceDuration:    2,
+				graceDuration:    3,
 			},
 			want: true,
 		},
 		{
 			name: "Test_isOverGraceDuration_false",
 			args: args{
-				cachedTime:       time.Now().Add(1 * time.Minute).Format(time.RFC3339), // 1 minute ahead of current < throtte duration 2
+				cachedTime:       time.Now().Add(2 * time.Second).Format(time.RFC3339), // still 8 sec left for grace duration
 				throttleDuration: 0,
-				graceDuration:    2,
+				graceDuration:    10,
 			},
 			want: false,
 		},
