@@ -124,7 +124,10 @@ func (t *Throttler) InitGrace(errObj error) []byte {
 	now := time.Now().Format(time.RFC3339)
 	cachedDetectionTime := []byte(now)
 	err = dc.Set(fmt.Sprintf("%v_detectionTime", errObj.Error()), cachedDetectionTime)
-	return cachedDetectionTime
+	if err == nil {
+		return cachedDetectionTime
+	}
+	return nil
 }
 
 // CleanThrottlingCache clean all the diskcache in throttling cache directory
