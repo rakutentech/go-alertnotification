@@ -44,13 +44,13 @@ func TestNewThrottler(t *testing.T) {
 	for _, tt := range tests {
 		if tt.name == "change duration" {
 			os.Setenv("THROTTLE_DURATION", "7")
-			os.Setenv("GRACE_DURATION", "5")
+			os.Setenv("THROTTLE_GRACE_SECONDS", "5")
 		} else if tt.name == "change both" {
 			os.Setenv("THROTTLE_DURATION", "8")
-			os.Setenv("GRACE_DURATION", "0")
+			os.Setenv("THROTTLE_GRACE_SECONDS", "0")
 			os.Setenv("THROTTLE_DISKCACHE_DIR", "new_cache_dir")
 		} else if tt.name == "default" {
-			os.Setenv("GRACE_DURATION", "")
+			os.Setenv("THROTTLE_GRACE_SECONDS", "")
 		}
 		t.Run(tt.name, func(t *testing.T) {
 			got := NewThrottler()

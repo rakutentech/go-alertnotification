@@ -37,8 +37,8 @@ func NewThrottler() Throttler {
 		}
 		t.ThrottleDuration = duration
 	}
-	if len(os.Getenv("GRACE_DURATION")) != 0 {
-		grace, err := strconv.Atoi(os.Getenv("GRACE_DURATION"))
+	if len(os.Getenv("THROTTLE_GRACE_SECONDS")) != 0 {
+		grace, err := strconv.Atoi(os.Getenv("THROTTLE_GRACE_SECONDS"))
 		if err != nil {
 			return t
 		}
@@ -61,11 +61,9 @@ func (t *Throttler) IsThrottledOrGraced(ocError error) bool {
 
 	cachedDetectionTime, hasCachedDetectionTime := dc.Get(fmt.Sprintf("%v_detectionTime", ocError.Error()))
 	if !hasCachedDetectionTime {
-		now := time.Now().Format(time.RFC3339)
-		cachedDetectionTime = []byte(now)
-		dc.Set(fmt.Sprintf("%v_detectionTime", ocError.Error()), cachedDetectionTime)
+		cachedDetectionTime = t.InitGrace(ocError)
 	}
-	if !isOverGraceDuration(string(cachedDetectionTime), t.GraceDuration) {
+	if cachedDetectionTime != nil && !isOverGraceDuration(string(cachedDetectionTime), t.GraceDuration) {
 		// grace duration is not over yet, do nothing
 		return true
 	}
@@ -75,6 +73,7 @@ func (t *Throttler) IsThrottledOrGraced(ocError error) bool {
 		// already throttled and not over throttling duration, do nothing
 		return true
 	}
+
 	// if it has not throttled yet or over throttle duration, throttle it and return false to send notification
 	// Rethrottler will also renew the timestamp in the throttler cache.
 	if err = t.ThrottleError(ocError); err != nil {
@@ -109,10 +108,23 @@ func (t *Throttler) ThrottleError(errObj error) error {
 	if err != nil {
 		return err
 	}
+
 	now := time.Now().Format(time.RFC3339)
 	err = dc.Set(errObj.Error(), []byte(now))
 
 	return err
+}
+
+// ThrottleError throttle the alert within the limited duration
+func (t *Throttler) InitGrace(errObj error) []byte {
+	dc, err := t.getDiskCache()
+	if err != nil {
+		return nil
+	}
+	now := time.Now().Format(time.RFC3339)
+	cachedDetectionTime := []byte(now)
+	err = dc.Set(fmt.Sprintf("%v_detectionTime", errObj.Error()), cachedDetectionTime)
+	return cachedDetectionTime
 }
 
 // CleanThrottlingCache clean all the diskcache in throttling cache directory

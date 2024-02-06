@@ -182,7 +182,7 @@ func TestAlert_shouldAlert(t *testing.T) {
 				os.Setenv("THROTTLE_ENABLED", "false")
 			}
 			if tt.name == "shouldAlert_graced_false" {
-				os.Setenv("GRACE_DURATION", "20")
+				os.Setenv("THROTTLE_GRACE_SECONDS", "20")
 			}
 			a := &Alert{
 				Error:            tt.fields.Error,
