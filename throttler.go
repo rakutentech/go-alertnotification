@@ -58,19 +58,20 @@ func (t *Throttler) IsThrottledOrGraced(ocError error) bool {
 	if err != nil {
 		return false
 	}
+	cachedThrottleTime, throttled := dc.Get(ocError.Error())
+	cachedDetectionTime, graced := dc.Get(fmt.Sprintf("%v_detectionTime", ocError.Error()))
 
-	cachedDetectionTime, hasCachedDetectionTime := dc.Get(fmt.Sprintf("%v_detectionTime", ocError.Error()))
-	if !hasCachedDetectionTime {
+	throttleIsOver := isOverThrottleDuration(string(cachedThrottleTime), t.ThrottleDuration)
+	if throttled && !throttleIsOver {
+		// already throttled and not over throttling duration, do nothing
+		return true
+	}
+
+	if !graced || isOverGracePlusThrottleDuration(string(cachedDetectionTime), t.GraceDuration, t.ThrottleDuration) {
 		cachedDetectionTime = t.InitGrace(ocError)
 	}
 	if cachedDetectionTime != nil && !isOverGraceDuration(string(cachedDetectionTime), t.GraceDuration) {
 		// grace duration is not over yet, do nothing
-		return true
-	}
-
-	cachedTime, throttled := dc.Get(ocError.Error())
-	if throttled && !isOverThrottleDuration(string(cachedTime), t.ThrottleDuration) {
-		// already throttled and not over throttling duration, do nothing
 		return true
 	}
 
@@ -80,6 +81,17 @@ func (t *Throttler) IsThrottledOrGraced(ocError error) bool {
 		return false
 	}
 	return false
+}
+
+func isOverGracePlusThrottleDuration(cachedTime string, graceDurationInSec int, throttleDurationInMin int) bool {
+	detectionTime, err := time.Parse(time.RFC3339, string(cachedTime))
+	if err != nil {
+		return false
+	}
+	now := time.Now()
+	diff := int(now.Sub(detectionTime).Seconds())
+	overallDurationInSec := graceDurationInSec + throttleDurationInMin*60
+	return diff >= overallDurationInSec
 }
 
 func isOverGraceDuration(cachedTime string, graceDuration int) bool {
@@ -99,7 +111,7 @@ func isOverThrottleDuration(cachedTime string, throttleDuration int) bool {
 	}
 	now := time.Now()
 	diff := int(now.Sub(throttledTime).Minutes())
-	return diff > throttleDuration
+	return diff >= throttleDuration
 }
 
 // ThrottleError throttle the alert within the limited duration
@@ -124,10 +136,11 @@ func (t *Throttler) InitGrace(errObj error) []byte {
 	now := time.Now().Format(time.RFC3339)
 	cachedDetectionTime := []byte(now)
 	err = dc.Set(fmt.Sprintf("%v_detectionTime", errObj.Error()), cachedDetectionTime)
-	if err == nil {
-		return cachedDetectionTime
+	if err != nil {
+		return nil
 	}
-	return nil
+
+	return cachedDetectionTime
 }
 
 // CleanThrottlingCache clean all the diskcache in throttling cache directory
