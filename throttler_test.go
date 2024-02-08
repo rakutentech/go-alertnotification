@@ -21,6 +21,7 @@ func TestNewThrottler(t *testing.T) {
 			want: Throttler{
 				CacheOpt:         fmt.Sprintf("/tmp/cache/%v_throttler_disk_cache", os.Getenv("APP_NAME")),
 				ThrottleDuration: 5,
+				GraceDuration:    0,
 			},
 		},
 		{
@@ -28,6 +29,7 @@ func TestNewThrottler(t *testing.T) {
 			want: Throttler{
 				CacheOpt:         fmt.Sprintf("/tmp/cache/%v_throttler_disk_cache", os.Getenv("APP_NAME")),
 				ThrottleDuration: 7,
+				GraceDuration:    5,
 			},
 		},
 		{
@@ -35,28 +37,35 @@ func TestNewThrottler(t *testing.T) {
 			want: Throttler{
 				CacheOpt:         "new_cache_dir",
 				ThrottleDuration: 8,
+				GraceDuration:    0,
 			},
 		},
 	}
 	for _, tt := range tests {
 		if tt.name == "change duration" {
 			os.Setenv("THROTTLE_DURATION", "7")
+			os.Setenv("THROTTLE_GRACE_SECONDS", "5")
 		} else if tt.name == "change both" {
 			os.Setenv("THROTTLE_DURATION", "8")
+			os.Setenv("THROTTLE_GRACE_SECONDS", "0")
 			os.Setenv("THROTTLE_DISKCACHE_DIR", "new_cache_dir")
+		} else if tt.name == "default" {
+			os.Setenv("THROTTLE_GRACE_SECONDS", "")
 		}
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewThrottler(); !reflect.DeepEqual(got, tt.want) {
+			got := NewThrottler()
+			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewThrottler() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestThrottler_IsThrottled(t *testing.T) {
+func TestThrottler_IsThrottledOrGraced(t *testing.T) {
 	type fields struct {
 		CacheOpt         string
 		ThrottleDuration int
+		GraceDuration    int
 	}
 	type args struct {
 		ocError error
@@ -72,6 +81,7 @@ func TestThrottler_IsThrottled(t *testing.T) {
 			fields: fields{
 				CacheOpt:         fmt.Sprintf("/tmp/cache/%v_throttler_disk_cache", os.Getenv("APP_NAME")),
 				ThrottleDuration: 5,
+				GraceDuration:    0,
 			},
 			args: args{
 				ocError: errors.New("test_throttling"),
@@ -83,6 +93,19 @@ func TestThrottler_IsThrottled(t *testing.T) {
 			fields: fields{
 				CacheOpt:         fmt.Sprintf("/tmp/cache/%v_throttler_disk_cache", os.Getenv("APP_NAME")),
 				ThrottleDuration: 5,
+				GraceDuration:    0,
+			},
+			args: args{
+				ocError: errors.New("test_throttling"),
+			},
+			want: true,
+		},
+		{
+			name: "graced_true",
+			fields: fields{
+				CacheOpt:         fmt.Sprintf("/tmp/cache/%v_throttler_disk_cache", os.Getenv("APP_NAME")),
+				ThrottleDuration: 5,
+				GraceDuration:    25,
 			},
 			args: args{
 				ocError: errors.New("test_throttling"),
@@ -95,14 +118,14 @@ func TestThrottler_IsThrottled(t *testing.T) {
 			th := &Throttler{
 				CacheOpt:         tt.fields.CacheOpt,
 				ThrottleDuration: tt.fields.ThrottleDuration,
+				GraceDuration:    tt.fields.GraceDuration,
 			}
 			if tt.name == "throttled_true" {
 				if err := th.ThrottleError(tt.args.ocError); err != nil {
 					t.Errorf("testing failed : %+v", err)
 				}
-
 			}
-			if got := th.IsThrottled(tt.args.ocError); got != tt.want {
+			if got := th.IsThrottledOrGraced(tt.args.ocError); got != tt.want {
 				t.Errorf("Throttler.IsThrottled() = %v, want %v", got, tt.want)
 			}
 			err := th.CleanThrottlingCache()
@@ -118,6 +141,7 @@ func TestThrottler_ThrottleError(t *testing.T) {
 	type fields struct {
 		CacheOpt         string
 		ThrottleDuration int
+		GraceDuration    int
 	}
 	type args struct {
 		errObj error
@@ -133,6 +157,7 @@ func TestThrottler_ThrottleError(t *testing.T) {
 			fields: fields{
 				CacheOpt:         fmt.Sprintf("/tmp/cache/%v_throttler_disk_cache", os.Getenv("APP_NAME")),
 				ThrottleDuration: 5,
+				GraceDuration:    0,
 			},
 			args: args{
 				errObj: errors.New("test_throttling"),
@@ -144,6 +169,7 @@ func TestThrottler_ThrottleError(t *testing.T) {
 			fields: fields{
 				CacheOpt:         "/no_permission_dir",
 				ThrottleDuration: 5,
+				GraceDuration:    0,
 			},
 			args: args{
 				errObj: errors.New("test_throttling"),
@@ -162,7 +188,7 @@ func TestThrottler_ThrottleError(t *testing.T) {
 			if err := th.ThrottleError(tt.args.errObj); (err != nil) != tt.wantErr {
 				t.Errorf("Throttler.ThrottleError() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			if tt.name == "default" && !th.IsThrottled(tt.args.errObj) {
+			if tt.name == "default" && !th.IsThrottledOrGraced(tt.args.errObj) {
 				t.Errorf("Throttler.ThrottleError() error = %v, wantErr %v", errors.New("throttling failed"), tt.wantErr)
 			}
 			if !tt.wantErr {
@@ -229,6 +255,7 @@ func Test_isOverThrottleDuration(t *testing.T) {
 	type args struct {
 		cachedTime       string
 		throttleDuration int
+		graceDuration    int
 	}
 	tests := []struct {
 		name string
@@ -240,6 +267,7 @@ func Test_isOverThrottleDuration(t *testing.T) {
 			args: args{
 				cachedTime:       time.Now().Add(-3 * time.Minute).Format(time.RFC3339), // -3 minutes => pass 2 minutes durations
 				throttleDuration: 2,
+				graceDuration:    0,
 			},
 			want: true,
 		},
@@ -248,6 +276,7 @@ func Test_isOverThrottleDuration(t *testing.T) {
 			args: args{
 				cachedTime:       time.Now().Add(1 * time.Minute).Format(time.RFC3339), // 1 minute ahead of current < throtte duration 2
 				throttleDuration: 2,
+				graceDuration:    0,
 			},
 			want: false,
 		},
@@ -259,4 +288,44 @@ func Test_isOverThrottleDuration(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_isOverGraceDuration(t *testing.T) {
+	type args struct {
+		cachedTime       string
+		throttleDuration int
+		graceDuration    int
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "Test_isOverGraceDuration_true",
+			args: args{
+				cachedTime:       time.Now().Add(-5 * time.Second).Format(time.RFC3339), // 2 sec after grace duration is over
+				throttleDuration: 0,
+				graceDuration:    3,
+			},
+			want: true,
+		},
+		{
+			name: "Test_isOverGraceDuration_false",
+			args: args{
+				cachedTime:       time.Now().Add(2 * time.Second).Format(time.RFC3339), // still 8 sec left for grace duration
+				throttleDuration: 0,
+				graceDuration:    10,
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := isOverGraceDuration(tt.args.cachedTime, tt.args.graceDuration); got != tt.want {
+				t.Errorf("isOverGraceDuration() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+
 }

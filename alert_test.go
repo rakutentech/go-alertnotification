@@ -159,6 +159,14 @@ func TestAlert_shouldAlert(t *testing.T) {
 			},
 			want: true,
 		},
+		{name: "shouldAlert_graced_false",
+			fields: fields{
+				Error: errors.New("alert this"),
+				DoNotAlertErrors: []error{
+					errors.New("do not alert"), errors.New("if this error then don't alert")},
+			},
+			want: false,
+		},
 		{name: "shouldAlert_true_disable_throttling",
 			fields: fields{
 				Error: errors.New("do not alert"),
@@ -173,6 +181,9 @@ func TestAlert_shouldAlert(t *testing.T) {
 			if tt.name == "shouldAlert_true_disable_throttling" {
 				os.Setenv("THROTTLE_ENABLED", "false")
 			}
+			if tt.name == "shouldAlert_graced_false" {
+				os.Setenv("THROTTLE_GRACE_SECONDS", "20")
+			}
 			a := &Alert{
 				Error:            tt.fields.Error,
 				DoNotAlertErrors: tt.fields.DoNotAlertErrors,
@@ -180,7 +191,8 @@ func TestAlert_shouldAlert(t *testing.T) {
 			if err := a.RemoveCurrentThrotting(); err != nil {
 				t.Errorf("Alert.Notify() error = %+v", err)
 			}
-			if got := a.shouldAlert(); got != tt.want {
+			got := a.shouldAlert()
+			if got != tt.want {
 				t.Errorf("Alert.shouldAlert() = %v, want %v", got, tt.want)
 			}
 		})
