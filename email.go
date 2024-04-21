@@ -11,14 +11,16 @@ import (
 
 // EmailConfig is email setting struct
 type EmailConfig struct {
-	Username  string
-	Password  string
-	Host      string
-	Port      string
-	Sender    string
-	Receivers []string // Can use comma for multiple email
-	ErrorObj  error
-	Expandos  *Expandos // can modify mail subject and content on demand
+	Username     string
+	Password     string
+	Host         string
+	Port         string
+	Sender       string
+	EnvelopeFrom string
+	Receivers    []string // Can use comma for multiple email
+	Subject      string
+	ErrorObj     error
+	Expandos     *Expandos // can modify mail subject and content on demand
 }
 
 func getReceivers() []string {
@@ -33,14 +35,19 @@ func getReceivers() []string {
 // NewEmailConfig create new EmailConfig struct
 func NewEmailConfig(err error, expandos *Expandos) EmailConfig {
 	config := EmailConfig{
-		Username:  os.Getenv("EMAIL_USERNAME"),
-		Password:  os.Getenv("EMAIL_PASSWORD"),
-		Host:      os.Getenv("SMTP_HOST"),
-		Port:      os.Getenv("SMTP_PORT"),
-		Sender:    os.Getenv("EMAIL_SENDER"),
-		Receivers: getReceivers(),
-		ErrorObj:  err,
-		Expandos:  expandos,
+		Username:     os.Getenv("EMAIL_USERNAME"),
+		Password:     os.Getenv("EMAIL_PASSWORD"),
+		Host:         os.Getenv("SMTP_HOST"),
+		Port:         os.Getenv("SMTP_PORT"),
+		Sender:       os.Getenv("EMAIL_SENDER"),
+		EnvelopeFrom: os.Getenv("EMAIL_ENVELOPE_FROM"),
+		Subject:      os.Getenv("EMAIL_SUBJECT"),
+		Receivers:    getReceivers(),
+		ErrorObj:     err,
+		Expandos:     expandos,
+	}
+	if len(strings.TrimSpace(config.EnvelopeFrom)) == 0 {
+		config.EnvelopeFrom = config.Sender
 	}
 	return config
 }
@@ -55,7 +62,6 @@ func (ec *EmailConfig) Send() error {
 	r := strings.NewReplacer("\r\n", "", "\r", "", "\n", "", "%0a", "", "%0d", "")
 
 	messageDetail := "Error: \r\n" + fmt.Sprintf("%+v", ec.ErrorObj)
-	subject := os.Getenv("EMAIL_SUBJECT")
 
 	// update body and subject dynamically
 	if ec.Expandos != nil {
@@ -63,16 +69,16 @@ func (ec *EmailConfig) Send() error {
 			messageDetail = ec.Expandos.EmailBody
 		}
 		if ec.Expandos.EmailSubject != "" {
-			subject = ec.Expandos.EmailSubject
+			ec.Subject = ec.Expandos.EmailSubject
 		}
 	}
 
 	message := "To: " + strings.Join(ec.Receivers, ", ") + "\r\n" +
 		"From: " + ec.Sender + "\r\n" +
-		"Subject: " + subject + "\r\n" +
+		"Subject: " + ec.Subject + "\r\n" +
 		"Content-Type: text/html; charset=\"UTF-8\"\r\n" +
 		"Content-Transfer-Encoding: base64\r\n" +
-		"\r\n" + base64.StdEncoding.EncodeToString([]byte(string(messageDetail)))
+		"\r\n" + base64.StdEncoding.EncodeToString([]byte(messageDetail))
 
 	if len(strings.TrimSpace(ec.Username)) != 0 {
 		stmpAuth := smtp.PlainAuth("", ec.Username, ec.Password, ec.Host)
@@ -80,7 +86,7 @@ func (ec *EmailConfig) Send() error {
 		err = smtp.SendMail(
 			ec.Host+":"+ec.Port,
 			stmpAuth,
-			ec.Sender,
+			ec.EnvelopeFrom,
 			ec.Receivers,
 			[]byte(message),
 		)
@@ -93,7 +99,7 @@ func (ec *EmailConfig) Send() error {
 	}
 
 	defer conn.Close()
-	if err = conn.Mail(r.Replace(ec.Sender)); err != nil {
+	if err = conn.Mail(r.Replace(ec.EnvelopeFrom)); err != nil {
 		return err
 	}
 	// format receiver email
