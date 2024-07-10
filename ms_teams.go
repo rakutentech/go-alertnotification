@@ -12,28 +12,34 @@ import (
 	"time"
 )
 
-// MsTeam is MessageCard for Team notification
+// MsTeam is AdaptiveCard for Team notification
 type MsTeam struct {
-	Type       string          `json:"@type"`
-	Context    string          `json:"@context"`
-	Summary    string          `json:"summary"`
-	ThemeColor string          `json:"themeColor"`
-	Title      string          `json:"title"`
-	Sections   []SectionStruct `json:"sections"`
+	Type    string          `json:"type"`
+	Version string          `json:"version"`
+	Body    []BodyStruct    `json:"body"`
+	Actions []ActionStruct  `json:"actions"`
 }
 
-// SectionStruct is sub-struct of MsTeam
-type SectionStruct struct {
-	ActivityTitle    string       `json:"activityTitle"`
-	ActivitySubtitle string       `json:"activitySubtitle"`
-	ActivityImage    string       `json:"activityImage"`
-	Facts            []FactStruct `json:"facts"`
+// BodyStruct is sub-struct of MsTeam
+type BodyStruct struct {
+	Type     string       `json:"type"`
+	Text     string       `json:"text"`
+	Items    []ItemStruct `json:"items"`
 }
 
-// FactStruct is sub-struct of SectionStruct
-type FactStruct struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
+// ItemStruct is sub-struct of BodyStruct
+type ItemStruct struct {
+	Type  string `json:"type"`
+	Text  string `json:"text"`
+	Weight string `json:"weight"`
+	Size   string `json:"size"`
+}
+
+// ActionStruct is sub-struct of MsTeam
+type ActionStruct struct {
+	Type  string `json:"type"`
+	Title string `json:"title"`
+	URL   string `json:"url"`
 }
 
 // NewMsTeam is used to create MsTeam
@@ -55,26 +61,33 @@ func NewMsTeam(err error, expandos *Expandos) MsTeam {
 	}
 
 	notificationCard := MsTeam{
-		Type:       "MessageCard",
-		Context:    "http://schema.org/extensions",
-		Summary:    summary,
-		ThemeColor: os.Getenv("ALERT_THEME_COLOR"),
-		Title:      title,
-		Sections: []SectionStruct{
-			SectionStruct{
-				ActivityTitle:    summary,
-				ActivitySubtitle: fmt.Sprintf("error has occured on %v", os.Getenv("APP_NAME")),
-				ActivityImage:    "",
-				Facts: []FactStruct{
-					FactStruct{
-						Name:  "Environment:",
-						Value: os.Getenv("APP_ENV"),
+		Type:    "AdaptiveCard",
+		Version: "1.2",
+		Body: []BodyStruct{
+			BodyStruct{
+				Type: "TextBlock",
+				Text: title,
+				Items: []ItemStruct{
+					ItemStruct{
+						Type:  "TextBlock",
+						Text:  summary,
+						Weight: "Bolder",
+						Size:   "Medium",
 					},
-					FactStruct{
-						Name:  "ERROR",
-						Value: errMsg,
+					ItemStruct{
+						Type:  "TextBlock",
+						Text:  fmt.Sprintf("Error: %s", errMsg),
+						Weight: "Lighter",
+						Size:   "Small",
 					},
 				},
+			},
+		},
+		Actions: []ActionStruct{
+			ActionStruct{
+				Type:  "Action.OpenUrl",
+				Title: "View Details",
+				URL:   os.Getenv("MS_TEAMS_WEBHOOK"),
 			},
 		},
 	}
