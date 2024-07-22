@@ -5,35 +5,70 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
 	"time"
 )
 
-// MsTeam is MessageCard for Team notification
+// MsTeam is Adaptive Card for Team notification
 type MsTeam struct {
-	Type       string          `json:"@type"`
-	Context    string          `json:"@context"`
-	Summary    string          `json:"summary"`
-	ThemeColor string          `json:"themeColor"`
-	Title      string          `json:"title"`
-	Sections   []SectionStruct `json:"sections"`
+	Type        string       `json:"type"`
+	Attachments []attachment `json:"attachments"`
 }
 
-// SectionStruct is sub-struct of MsTeam
-type SectionStruct struct {
-	ActivityTitle    string       `json:"activityTitle"`
-	ActivitySubtitle string       `json:"activitySubtitle"`
-	ActivityImage    string       `json:"activityImage"`
-	Facts            []FactStruct `json:"facts"`
+type attachment struct {
+	ContentType string      `json:"contentType"`
+	ContentURL  *string     `json:"contentUrl"`
+	Content     cardContent `json:"content"`
 }
 
-// FactStruct is sub-struct of SectionStruct
-type FactStruct struct {
-	Name  string `json:"name"`
+type cardContent struct {
+	Schema      string        `json:"$schema"`
+	Type        string        `json:"type"`
+	Version     string        `json:"version"`
+	AccentColor string        `json:"accentColor"`
+	Body        []interface{} `json:"body"`
+	Actions     []action      `json:"actions"`
+	MSTeams     msTeams       `json:"msteams"`
+}
+
+type textBlock struct {
+	Type   string `json:"type"`
+	Text   string `json:"text"`
+	ID     string `json:"id,omitempty"`
+	Size   string `json:"size,omitempty"`
+	Weight string `json:"weight,omitempty"`
+	Color  string `json:"color,omitempty"`
+}
+
+type fact struct {
+	Title string `json:"title"`
 	Value string `json:"value"`
+}
+
+type factSet struct {
+	Type  string `json:"type"`
+	Facts []fact `json:"facts"`
+	ID    string `json:"id"`
+}
+
+type codeBlock struct {
+	Type        string `json:"type"`
+	CodeSnippet string `json:"codeSnippet"`
+	FontType    string `json:"fontType"`
+	Wrap        bool   `json:"wrap"`
+}
+
+type action struct {
+	Type  string `json:"type"`
+	Title string `json:"title"`
+	URL   string `json:"url"`
+}
+
+type msTeams struct {
+	Width string `json:"width"`
 }
 
 // NewMsTeam is used to create MsTeam
@@ -41,6 +76,11 @@ func NewMsTeam(err error, expandos *Expandos) MsTeam {
 	title := os.Getenv("ALERT_CARD_SUBJECT")
 	summary := os.Getenv("MS_TEAMS_CARD_SUBJECT")
 	errMsg := fmt.Sprintf("%+v", err)
+	hostname, err := os.Hostname()
+	if err != nil {
+		hostname = "hostname_unknown"
+	}
+	hostname += " " + os.Getenv("APP_NAME")
 	// apply expandos on card
 	if expandos != nil {
 		if expandos.MsTeamsAlertCardSubject != "" {
@@ -54,31 +94,58 @@ func NewMsTeam(err error, expandos *Expandos) MsTeam {
 		}
 	}
 
-	notificationCard := MsTeam{
-		Type:       "MessageCard",
-		Context:    "http://schema.org/extensions",
-		Summary:    summary,
-		ThemeColor: os.Getenv("ALERT_THEME_COLOR"),
-		Title:      title,
-		Sections: []SectionStruct{
-			SectionStruct{
-				ActivityTitle:    summary,
-				ActivitySubtitle: fmt.Sprintf("error has occured on %v", os.Getenv("APP_NAME")),
-				ActivityImage:    "",
-				Facts: []FactStruct{
-					FactStruct{
-						Name:  "Environment:",
-						Value: os.Getenv("APP_ENV"),
+	return MsTeam{
+		Type: "message",
+		Attachments: []attachment{
+			{
+				ContentType: "application/vnd.microsoft.card.adaptive",
+				ContentURL:  nil,
+				Content: cardContent{
+					Schema:      "http://adaptivecards.io/schemas/adaptive-card.json",
+					Type:        "AdaptiveCard",
+					Version:     "1.4",
+					AccentColor: "bf0000",
+					Body: []interface{}{
+						textBlock{
+							Type:   "TextBlock",
+							Text:   title,
+							ID:     "title",
+							Size:   "large",
+							Weight: "bolder",
+							Color:  "accent",
+						},
+						factSet{
+							Type: "FactSet",
+							Facts: []fact{
+								{
+									Title: "Title:",
+									Value: title,
+								},
+								{
+									Title: "Summary:",
+									Value: summary,
+								},
+								{
+									Title: "Hostname:",
+									Value: hostname,
+								},
+							},
+							ID: "acFactSet",
+						},
+						codeBlock{
+							Type:        "CodeBlock",
+							CodeSnippet: errMsg,
+							FontType:    "monospace",
+							Wrap:        true,
+						},
 					},
-					FactStruct{
-						Name:  "ERROR",
-						Value: errMsg,
+					MSTeams: msTeams{
+						Width: "Full",
 					},
 				},
 			},
 		},
 	}
-	return notificationCard
 }
 
 // Send is implementation of interface AlertNotification's Send()
@@ -125,12 +192,12 @@ func (card *MsTeam) Send() (err error) {
 
 	defer resp.Body.Close()
 
-	respBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-	if string(respBody) != "1" {
-		return errors.New("cannot push to MSTeams")
+	if resp.StatusCode != http.StatusAccepted {
+		respBody, err := io.ReadAll(io.LimitReader(resp.Body, 1024*1024))
+		if err != nil {
+			return err
+		}
+		return fmt.Errorf("unexpected response from webhook: %s", string(respBody))
 	}
 	return
 }
