@@ -192,12 +192,12 @@ func (card *MsTeam) Send() (err error) {
 
 	defer resp.Body.Close()
 
-	respBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-	if string(respBody) != "1" {
-		return errors.New("cannot push to MSTeams")
+	if resp.StatusCode != http.StatusAccepted {
+		respBody, err := io.ReadAll(io.LimitReader(resp.Body, 1024*1024))
+		if err != nil {
+			return err
+		}
+		return fmt.Errorf("unexpected response from webhook: %s", string(respBody))
 	}
 	return
 }
