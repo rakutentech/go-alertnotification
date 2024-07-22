@@ -1,4 +1,4 @@
-module github.com/rakutentech/go-alertnotification
+module github.com/rakutentech/go-alertnotification/v2
 
 go 1.21
 
